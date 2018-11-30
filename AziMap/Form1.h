@@ -3,21 +3,6 @@
 #define FST_N (0)
 #define FST_E (0)
 
-/*
-#define FST_N (35.0)
-#define FST_E (137.0)
-*/
-
-/*
-#define FST_N (-63.0)
-#define FST_E (-58.0)
-*/
-
-/*
-#define FST_N (8.0)
-#define FST_E (77.5)
-*/
-
 namespace AziMap {
 
 	using namespace System;
@@ -56,14 +41,12 @@ namespace AziMap {
 			updtsrcimg(gcnew Bitmap(asmbly->GetManifestResourceStream("source.jpg")));
 
 			//•\Ž¦—p‰æ‘œ‚Ì—pˆÓ
-			dbmp = gcnew Bitmap(this->pictureBox1->Width,this->pictureBox1->Height);
-			dw = dbmp->Width;
-			dh = dbmp->Height;
-			ddt = gcnew array<Byte>((int)(dw*dh*3));
-
-			lscth = gcnew array<double,2>((int)dw,(int)dh);
-			lssrad = gcnew array<double,2>((int)dw,(int)dh);
-			lscrad = gcnew array<double,2>((int)dw,(int)dh);
+			dbmp = nullptr;
+			ddt = nullptr;
+			lscth = nullptr;
+			lssrad = nullptr;
+			lscrad = nullptr;
+			this->chgWinSiz(533);
 
 			this->lstype = 0;
 			this->equidistantToolStripMenuItem->Checked = true;
@@ -77,7 +60,7 @@ namespace AziMap {
 
 			mainfunc();
 			updtimg();
-
+			
 			this->enthd = true;
 			this->bsythd = false;
 			this->ordthd = false;
@@ -107,12 +90,14 @@ namespace AziMap {
 		array<Byte>^ sdt;
 		double sw,sh;
 		int sx,sy;
+		int spad;
 
 		Bitmap^ dbmp;
 		BitmapData^ dbmpdt;
 		array<Byte>^ ddt;
 		double dw,dh;
 		int dx,dy;
+		int dpad;
 
 		int lstype;
 		int lsavlbl;
@@ -141,10 +126,48 @@ private: System::Windows::Forms::MenuStrip^  menuStrip1;
 private: System::Windows::Forms::ToolStripMenuItem^  settingsToolStripMenuItem;
 private: System::Windows::Forms::ToolStripMenuItem^  tyepOfMapToolStripMenuItem;
 private: System::Windows::Forms::ToolStripMenuItem^  sourceImageToolStripMenuItem;
+private: System::Windows::Forms::ToolStripMenuItem^  windowSizeToolStripMenuItem;
+private: System::Windows::Forms::ToolStripMenuItem^  smallToolStripMenuItem;
+private: System::Windows::Forms::ToolStripMenuItem^  middleToolStripMenuItem;
+private: System::Windows::Forms::ToolStripMenuItem^  largeToolStripMenuItem;
 
 
 private: System::Windows::Forms::VScrollBar^  vScrollBar1;
+	private:
+		// to change window size
+		void chgWinSiz(int size){
+			this->pictureBox1->Width = size; this->pictureBox1->Height = size;
+			this->Width =  this->pictureBox1->Width + 50;
+			this->Height = this->pictureBox1->Height + 90;
+			if (dbmp != nullptr)
+				delete dbmp;
+			dbmp = gcnew Bitmap(this->pictureBox1->Width, this->pictureBox1->Height);
+			dw = dbmp->Width;
+			dh = dbmp->Height;
+			dpad = (4 - ((int)(3 * dw) % 4)) % 4;
+			if (dbmp != nullptr)
+				delete ddt;
+			ddt = gcnew array<Byte>((int)((3 * dw + dpad)*dh));
+			for (int dy = 0; dy < dh; dy++){
+				for (int dx = 0; dx < dw; dx++){
+					ddt[(int)(dx * 3 + dy * (3 * dw + dpad))] = (Byte)0;
+					ddt[(int)(dx * 3 + dy * (3 * dw + dpad)) + 1] = (Byte)0;
+					ddt[(int)(dx * 3 + dy * (3 * dw + dpad)) + 2] = (Byte)0;
+				}
+			}
+			if (lscth != nullptr)
+				delete lscth;
+			lscth = gcnew array<double, 2>((int)dw, (int)dh);
+			if (lssrad != nullptr)
+				delete lssrad;
+			lssrad = gcnew array<double, 2>((int)dw, (int)dh);
+			if (lscrad != nullptr)
+				delete lscrad;
+			lscrad = gcnew array<double, 2>((int)dw, (int)dh);
 
+			updtls();
+
+		}
 	private:
 		void thdfunc(){
 			while(this->enthd){
@@ -165,12 +188,13 @@ private: System::Windows::Forms::VScrollBar^  vScrollBar1;
 			sbmp = bmp;
 			sw = sbmp->Width;
 			sh = sbmp->Height;
-			sdt = gcnew array<Byte>((int)(sw*sh*3));
+			spad = (4 - ((int)(3*sw) % 4)) % 4;
+			sdt = gcnew array<Byte>((int)((sw+spad)*sh*3));
 			sbmpdt = sbmp->LockBits(
 				Rectangle(Point::Empty, sbmp->Size),
 				ImageLockMode::ReadOnly,
 				PixelFormat::Format24bppRgb);
-			Marshal::Copy(sbmpdt->Scan0,sdt,0,(int)(sw*sh*3));
+			Marshal::Copy(sbmpdt->Scan0,sdt,0,(int)((3*sw+spad)*sh));
 			sbmp->UnlockBits(sbmpdt);
 		}
 	private:
@@ -210,6 +234,8 @@ private: System::Windows::Forms::VScrollBar^  vScrollBar1;
 		}
 
 	private:
+		// a function to map pixels from the source image to the display
+		// the mapping is based on the macro "azi_calc"
 		void mainfunc(){
 
 			splt = sin(plt);
@@ -219,11 +245,7 @@ private: System::Windows::Forms::VScrollBar^  vScrollBar1;
 			while(dx < dw){
 				dy = 0;
 				while(dy < dh){
-					if(lssrad[dx,dy] == -1){
-						ddt[(int)(dx*3+dy*3*dw)] = (Byte)0;
-						ddt[(int)(dx*3+dy*3*dw)+1] = (Byte)0;
-						ddt[(int)(dx*3+dy*3*dw)+2] = (Byte)0;
-					}else{
+					if(lssrad[dx,dy] != -1){ // inside the circle
 						if(dx >= (int)(dw/2))
 							dirEW = true;
 						else
@@ -240,9 +262,9 @@ private: System::Windows::Forms::VScrollBar^  vScrollBar1;
 						sx = (int)((dlg+PI)/(2*PI)*(sw-1));
 						sy = (int)(dlt/PI*(sh-1));
 
-						ddt[(int)(dx*3+dy*3*dw)] = sdt[(int)(sx*3+sy*3*sw)];
-						ddt[(int)(dx*3+dy*3*dw)+1] = sdt[(int)(sx*3+sy*3*sw)+1];
-						ddt[(int)(dx*3+dy*3*dw)+2] = sdt[(int)(sx*3+sy*3*sw)+2];
+						ddt[(int)(dx * 3 + dy * (3 * dw + dpad))] = sdt[(int)(sx * 3 + sy * (3 * sw + spad))];
+						ddt[(int)(dx * 3 + dy * (3 * dw + dpad)) + 1] = sdt[(int)(sx * 3 + sy * (3 * sw + spad)) + 1];
+						ddt[(int)(dx * 3 + dy * (3 * dw + dpad)) + 2] = sdt[(int)(sx * 3 + sy * (3 * sw + spad)) + 2];
 					}
 					dy++;
 				}
@@ -256,9 +278,95 @@ private: System::Windows::Forms::VScrollBar^  vScrollBar1;
 				Rectangle(Point::Empty, dbmp->Size),
 				ImageLockMode::WriteOnly,
 				PixelFormat::Format24bppRgb);
-			Marshal::Copy(ddt,0,dbmpdt->Scan0,(int)(dw*dh*3));
+			Marshal::Copy(ddt, 0, dbmpdt->Scan0, (int)((3 * dw + dpad)*dh));
 			dbmp->UnlockBits(dbmpdt);
 			this->pictureBox1->Image = dbmp;
+		}
+
+		// ***these are functions for check of bitmap file***
+		// save binary data to a file in bitmap format
+		void saveBitmap24(array<Byte>^ data, int w, int h, String^ filename){
+			saveBitmap24(data, w, h, filename, false,false);
+		}
+		void saveBitmap24(array<Byte>^ data, int w, int h, String^ filename, bool bgr){
+			saveBitmap24(data, w, h, filename, bgr, false);
+		}
+		void saveBitmap24(array<Byte>^ data, int w, int h, String^ filename, bool bgr /*if source data has BGR order */, bool pad /*if data row has padding*/){
+			// create an array holding image data based on Bitmap24
+			int filesize;
+			array<Byte>^ filedata = convByte2Bitmap24(data, w, h, &filesize,bgr,pad);
+
+			// write data on the memory to a file
+			System::IO::FileStream^ fileStream = gcnew System::IO::FileStream(filename, System::IO::FileMode::Create);
+			fileStream->Write(filedata, 0, filesize);
+			fileStream->Close();
+		}
+
+		// create byte array holding bitmap data, given binary data
+		array<Byte>^ convByte2Bitmap24(array<Byte>^ data, int w, int h, int* filesize, bool bgr /*if source data has BGR order */, bool pad /*if data row has padding*/){
+			// calculate sizes of each data chunk
+			int hsize = 14; // header size
+			int dsize = 40; // DIB header size
+			int off2pixel = hsize + dsize; // offset to pixelarray
+			int psize = (4 - ((3*w)%4))%4; // padding size
+			int isize = (w*3+psize)*h; // image size
+			int fsize = off2pixel + isize; // file size
+
+			// create memory space
+			array<Byte>^ filedata = gcnew array<Byte>(fsize);
+
+			// set header
+			filedata[0] = 'B'; filedata[1] = 'M'; // signature
+			int curp = 2; // current point on the mem
+			curp = setDT_LE(filedata, fsize, curp, 4); // file size
+			curp = setDT_LE(filedata, 0, curp, 4); // reserved x 4 bytes
+			curp = setDT_LE(filedata, off2pixel, curp, 4); // file offset to pixel array
+
+			// set image information
+			curp = setDT_LE(filedata, dsize, curp, 4); // DIB Header Size 4
+			curp = setDT_LE(filedata, w, curp, 4); // width 4
+			curp = setDT_LE(filedata, h, curp, 4); // height 4
+			curp = setDT_LE(filedata, 1, curp, 2); // planes 2
+			curp = setDT_LE(filedata, 24, curp, 2); // bits per pixel 2
+			curp = setDT_LE(filedata, 0, curp, 4); // compression 4
+			curp = setDT_LE(filedata, isize, curp, 4); // image size 4
+			curp = setDT_LE(filedata, 0, curp, 4); // x pixels per meter 4
+			curp = setDT_LE(filedata, 0, curp, 4); // y pixels per meter 4
+			curp = setDT_LE(filedata, 0, curp, 4); // colors in color table 4
+			curp = setDT_LE(filedata, 0, curp, 4); // important color count 4
+
+			// set data
+			int padding = 0;
+			if (pad)
+				padding = psize;
+			for (int ih = 0; ih < h; ih++){
+				for (int iw = 0; iw < w; iw++){
+					if (bgr){
+						filedata[curp + ih * (3 * w + psize) + 3 * iw] = data[(h - ih - 1) * (3 * w + padding) + 3 * iw]; //R
+						filedata[curp + ih * (3 * w + psize) + 3 * iw + 1] = data[(h - ih - 1) * (3 * w + padding) + 3 * iw + 1]; //G
+						filedata[curp + ih * (3 * w + psize) + 3 * iw + 2] = data[(h - ih - 1) * (3 * w + padding) + 3 * iw + 2]; //B
+					}
+					else{
+						filedata[curp + ih * (3 * w + psize) + 3 * iw + 2] = data[(h - ih - 1) * (3 * w + padding) + 3 * iw]; //R
+						filedata[curp + ih * (3 * w + psize) + 3 * iw + 1] = data[(h - ih - 1) * (3 * w + padding) + 3 * iw + 1]; //G
+						filedata[curp + ih * (3 * w + psize) + 3 * iw] = data[(h - ih - 1) * (3 * w + padding) + 3 * iw + 2]; //B
+					}
+				}
+				for (int i = 0; i < psize; i++){
+					filedata[curp + (ih + 1) * (3 * w + psize) - i - 1] = 0x00;
+				}
+			}
+
+			*filesize = fsize;
+
+			return filedata;
+		}
+
+		int setDT_LE(array<Byte>^ dest, int value, int offset, int size){
+			for (int i = 0; i < size; i++){
+				dest[offset + i] = (unsigned char)(value >> (i * 8));
+			}
+			return offset + size;
 		}
 
 	private: System::Windows::Forms::PictureBox^  pictureBox1;
@@ -289,96 +397,140 @@ private: System::ComponentModel::IContainer^  components;
 			this->settingsToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->tyepOfMapToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
 			this->sourceImageToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->pictureBox1))->BeginInit();
+			this->windowSizeToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->smallToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->middleToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			this->largeToolStripMenuItem = (gcnew System::Windows::Forms::ToolStripMenuItem());
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->BeginInit();
 			this->contextMenuStrip1->SuspendLayout();
 			this->menuStrip1->SuspendLayout();
 			this->SuspendLayout();
 			// 
 			// pictureBox1
 			// 
-			this->pictureBox1->Location = System::Drawing::Point(0, 28);
+			this->pictureBox1->Location = System::Drawing::Point(0, 35);
+			this->pictureBox1->Margin = System::Windows::Forms::Padding(4);
 			this->pictureBox1->Name = L"pictureBox1";
-			this->pictureBox1->Size = System::Drawing::Size(400, 400);
+			this->pictureBox1->Size = System::Drawing::Size(533, 533);
 			this->pictureBox1->TabIndex = 0;
 			this->pictureBox1->TabStop = false;
-			this->pictureBox1->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::pictureBox1_MouseMove);
 			this->pictureBox1->MouseDown += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::pictureBox1_MouseDown);
+			this->pictureBox1->MouseMove += gcnew System::Windows::Forms::MouseEventHandler(this, &Form1::pictureBox1_MouseMove);
 			// 
 			// contextMenuStrip1
 			// 
-			this->contextMenuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {this->equidistantToolStripMenuItem, 
-				this->equalareaToolStripMenuItem});
+			this->contextMenuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {
+				this->equidistantToolStripMenuItem,
+					this->equalareaToolStripMenuItem
+			});
 			this->contextMenuStrip1->Name = L"contextMenuStrip1";
-			this->contextMenuStrip1->Size = System::Drawing::Size(141, 48);
+			this->contextMenuStrip1->Size = System::Drawing::Size(153, 52);
 			// 
 			// equidistantToolStripMenuItem
 			// 
 			this->equidistantToolStripMenuItem->Name = L"equidistantToolStripMenuItem";
-			this->equidistantToolStripMenuItem->Size = System::Drawing::Size(140, 22);
+			this->equidistantToolStripMenuItem->Size = System::Drawing::Size(152, 24);
 			this->equidistantToolStripMenuItem->Text = L"equidistant";
 			this->equidistantToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::equidistantToolStripMenuItem_Click);
 			// 
 			// equalareaToolStripMenuItem
 			// 
 			this->equalareaToolStripMenuItem->Name = L"equalareaToolStripMenuItem";
-			this->equalareaToolStripMenuItem->Size = System::Drawing::Size(140, 22);
+			this->equalareaToolStripMenuItem->Size = System::Drawing::Size(152, 24);
 			this->equalareaToolStripMenuItem->Text = L"equal-area";
 			this->equalareaToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::equalareaToolStripMenuItem_Click);
 			// 
 			// vScrollBar1
 			// 
-			this->vScrollBar1->Location = System::Drawing::Point(403, 26);
+			this->vScrollBar1->Dock = System::Windows::Forms::DockStyle::Right;
+			this->vScrollBar1->Location = System::Drawing::Point(539, 0);
 			this->vScrollBar1->Name = L"vScrollBar1";
-			this->vScrollBar1->Size = System::Drawing::Size(22, 400);
+			this->vScrollBar1->Size = System::Drawing::Size(22, 572);
 			this->vScrollBar1->TabIndex = 1;
 			this->vScrollBar1->ValueChanged += gcnew System::EventHandler(this, &Form1::vScrollBar1_ValueChanged);
 			// 
 			// menuStrip1
 			// 
-			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) {this->settingsToolStripMenuItem});
+			this->menuStrip1->Items->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(1) { this->settingsToolStripMenuItem });
 			this->menuStrip1->Location = System::Drawing::Point(0, 0);
 			this->menuStrip1->Name = L"menuStrip1";
-			this->menuStrip1->Size = System::Drawing::Size(426, 26);
+			this->menuStrip1->Padding = System::Windows::Forms::Padding(8, 3, 0, 3);
+			this->menuStrip1->Size = System::Drawing::Size(539, 30);
 			this->menuStrip1->TabIndex = 2;
 			this->menuStrip1->Text = L"menuStrip1";
 			// 
 			// settingsToolStripMenuItem
 			// 
-			this->settingsToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(2) {this->tyepOfMapToolStripMenuItem, 
-				this->sourceImageToolStripMenuItem});
+			this->settingsToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
+				this->tyepOfMapToolStripMenuItem,
+					this->sourceImageToolStripMenuItem, this->windowSizeToolStripMenuItem
+			});
 			this->settingsToolStripMenuItem->Name = L"settingsToolStripMenuItem";
-			this->settingsToolStripMenuItem->Size = System::Drawing::Size(66, 22);
+			this->settingsToolStripMenuItem->Size = System::Drawing::Size(72, 24);
 			this->settingsToolStripMenuItem->Text = L"settings";
 			// 
 			// tyepOfMapToolStripMenuItem
 			// 
 			this->tyepOfMapToolStripMenuItem->Name = L"tyepOfMapToolStripMenuItem";
-			this->tyepOfMapToolStripMenuItem->Size = System::Drawing::Size(154, 22);
-			this->tyepOfMapToolStripMenuItem->Text = L"tyep of map";
+			this->tyepOfMapToolStripMenuItem->Size = System::Drawing::Size(167, 24);
+			this->tyepOfMapToolStripMenuItem->Text = L"type of map";
 			this->tyepOfMapToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::tyepOfMapToolStripMenuItem_Click);
 			// 
 			// sourceImageToolStripMenuItem
 			// 
 			this->sourceImageToolStripMenuItem->Name = L"sourceImageToolStripMenuItem";
-			this->sourceImageToolStripMenuItem->Size = System::Drawing::Size(154, 22);
+			this->sourceImageToolStripMenuItem->Size = System::Drawing::Size(167, 24);
 			this->sourceImageToolStripMenuItem->Text = L"source image";
 			this->sourceImageToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::sourceImageToolStripMenuItem_Click);
 			// 
+			// windowSizeToolStripMenuItem
+			// 
+			this->windowSizeToolStripMenuItem->DropDownItems->AddRange(gcnew cli::array< System::Windows::Forms::ToolStripItem^  >(3) {
+				this->smallToolStripMenuItem,
+					this->middleToolStripMenuItem, this->largeToolStripMenuItem
+			});
+			this->windowSizeToolStripMenuItem->Name = L"windowSizeToolStripMenuItem";
+			this->windowSizeToolStripMenuItem->Size = System::Drawing::Size(167, 24);
+			this->windowSizeToolStripMenuItem->Text = L"window size";
+			// 
+			// smallToolStripMenuItem
+			// 
+			this->smallToolStripMenuItem->Name = L"smallToolStripMenuItem";
+			this->smallToolStripMenuItem->Size = System::Drawing::Size(133, 24);
+			this->smallToolStripMenuItem->Text = L"small";
+			this->smallToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::smallToolStripMenuItem_Click);
+			// 
+			// middleToolStripMenuItem
+			// 
+			this->middleToolStripMenuItem->Name = L"middleToolStripMenuItem";
+			this->middleToolStripMenuItem->Size = System::Drawing::Size(133, 24);
+			this->middleToolStripMenuItem->Text = L"medium";
+			this->middleToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::middleToolStripMenuItem_Click);
+			// 
+			// largeToolStripMenuItem
+			// 
+			this->largeToolStripMenuItem->Name = L"largeToolStripMenuItem";
+			this->largeToolStripMenuItem->Size = System::Drawing::Size(133, 24);
+			this->largeToolStripMenuItem->Text = L"large";
+			this->largeToolStripMenuItem->Click += gcnew System::EventHandler(this, &Form1::largeToolStripMenuItem_Click);
+			// 
 			// Form1
 			// 
-			this->AutoScaleDimensions = System::Drawing::SizeF(6, 12);
+			this->AutoScaleDimensions = System::Drawing::SizeF(8, 16);
 			this->AutoScaleMode = System::Windows::Forms::AutoScaleMode::Font;
-			this->ClientSize = System::Drawing::Size(426, 431);
+			this->AutoSizeMode = System::Windows::Forms::AutoSizeMode::GrowAndShrink;
+			this->ClientSize = System::Drawing::Size(561, 572);
 			this->ContextMenuStrip = this->contextMenuStrip1;
 			this->Controls->Add(this->menuStrip1);
 			this->Controls->Add(this->pictureBox1);
 			this->Controls->Add(this->vScrollBar1);
 			this->FormBorderStyle = System::Windows::Forms::FormBorderStyle::Fixed3D;
-			this->Icon = (cli::safe_cast<System::Drawing::Icon^  >(resources->GetObject(L"$this.Icon")));
+			this->Icon = (cli::safe_cast<System::Drawing::Icon^>(resources->GetObject(L"$this.Icon")));
 			this->MainMenuStrip = this->menuStrip1;
+			this->Margin = System::Windows::Forms::Padding(4);
 			this->Name = L"Form1";
 			this->Text = L"Azimuthal map";
-			(cli::safe_cast<System::ComponentModel::ISupportInitialize^  >(this->pictureBox1))->EndInit();
+			(cli::safe_cast<System::ComponentModel::ISupportInitialize^>(this->pictureBox1))->EndInit();
 			this->contextMenuStrip1->ResumeLayout(false);
 			this->menuStrip1->ResumeLayout(false);
 			this->menuStrip1->PerformLayout();
@@ -484,28 +636,60 @@ private: System::Void sourceImageToolStripMenuItem_Click(System::Object^  sender
 				 if(this->srcimg->Equals("")){
 					 Assembly^ asmbly = Assembly::GetExecutingAssembly();
 					 updtsrcimg(gcnew Bitmap(asmbly->GetManifestResourceStream("source.jpg")));
+					 updtls();
+					 mainfunc();
+					 updtimg();
 				 }else{
 					 Bitmap^ bmp;
 					 try{
 						 bmp = gcnew Bitmap(this->srcimg);
-						 if(bmp->Width != 2*bmp->Height){
-							 this->srcimg = "";
-							 Assembly^ asmbly = Assembly::GetExecutingAssembly();
-							 bmp = gcnew Bitmap(asmbly->GetManifestResourceStream("source.jpg"));
+						 if (bmp->Width == 2 * bmp->Height){
+							 updtsrcimg(bmp);
+							 updtls();
+							 mainfunc();
+							 updtimg();
+						 }else{
+							 MessageBox::Show("The image ratio (width, height) needs to be 2:1.", "wrong image ratio", MessageBoxButtons::OK, MessageBoxIcon::Warning);
 						 }
 					 }catch(...){
 						 this->srcimg = "";
-						 Assembly^ asmbly = Assembly::GetExecutingAssembly();
-						 bmp = gcnew Bitmap(asmbly->GetManifestResourceStream("source.jpg"));
+						 MessageBox::Show("The file format is wrong.", "wrong image format", MessageBoxButtons::OK, MessageBoxIcon::Warning);
 					 }
-					 updtsrcimg(bmp);
 				 }
-				 updtls();
-				 mainfunc();
-				 updtimg();
 				 this->lsavlbl = true;
 			 }
 		 }
+// === window size ===
+// small
+private: System::Void smallToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+			 while (this->bsythd){}
+			 this->lsavlbl = false;
+			 this->chgWinSiz(333);
+			 updtls();
+			 mainfunc();
+			 updtimg();
+			 this->lsavlbl = true;
+}
+// medium
+private: System::Void middleToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+			 while (this->bsythd){}
+			 this->lsavlbl = false;
+			 this->chgWinSiz(533);
+			 updtls();
+			 mainfunc();
+			 updtimg();
+			 this->lsavlbl = true;
+}
+// large
+private: System::Void largeToolStripMenuItem_Click(System::Object^  sender, System::EventArgs^  e) {
+			 while (this->bsythd){}
+			 this->lsavlbl = false;
+			 this->chgWinSiz(733);
+			 updtls();
+			 mainfunc();
+			 updtimg();
+			 this->lsavlbl = true;
+}
 };
 }
 

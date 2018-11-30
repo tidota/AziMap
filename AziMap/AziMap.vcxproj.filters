@@ -64,4 +64,15 @@
   <ItemGroup>
     <Text Include="ReadMe.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ChSrc.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Form1.resX">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
+    <EmbeddedResource Include="TPSel.resx">
+      <Filter>リソース ファイル</Filter>
+    </EmbeddedResource>
+  </ItemGroup>
 </Project>
