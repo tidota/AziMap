@@ -1,4 +1,4 @@
-// AziMap.cpp : ƒƒCƒ“ ƒvƒƒWƒFƒNƒg ƒtƒ@ƒCƒ‹‚Å‚·B
+// AziMap.cpp : ãƒ¡ã‚¤ãƒ³ ãƒ—ãƒ­ã‚¸ã‚§ã‚¯ãƒˆ ãƒ•ã‚¡ã‚¤ãƒ«ã§ã™ã€‚
 
 #include "stdafx.h"
 #include "Form1.h"
@@ -8,11 +8,11 @@ using namespace AziMap;
 [STAThreadAttribute]
 int main(array<System::String ^> ^args)
 {
-	// ƒRƒ“ƒgƒ[ƒ‹‚ªì¬‚³‚ê‚é‘O‚ÉAWindows XP ƒrƒWƒ…ƒAƒ‹Œø‰Ê‚ğ—LŒø‚É‚µ‚Ü‚·
+	// ã‚³ãƒ³ãƒˆãƒ­ãƒ¼ãƒ«ãŒä½œæˆã•ã‚Œã‚‹å‰ã«ã€Windows XP ãƒ“ã‚¸ãƒ¥ã‚¢ãƒ«åŠ¹æœã‚’æœ‰åŠ¹ã«ã—ã¾ã™
 	Application::EnableVisualStyles();
 	Application::SetCompatibleTextRenderingDefault(false); 
 
-	// ƒƒCƒ“ ƒEƒBƒ“ƒhƒE‚ğì¬‚µ‚ÄAÀs‚µ‚Ü‚·
+	// ãƒ¡ã‚¤ãƒ³ ã‚¦ã‚£ãƒ³ãƒ‰ã‚¦ã‚’ä½œæˆã—ã¦ã€å®Ÿè¡Œã—ã¾ã™
 	Application::Run(gcnew Form1());
 	return 0;
 }

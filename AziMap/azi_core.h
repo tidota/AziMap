@@ -4,49 +4,49 @@
 
 #include <math.h>
 
-//ƒ}ƒNƒazi_calc‚Ì’è‹`
+//ãƒžã‚¯ãƒ­azi_calcã®å®šç¾©
 
-//—^‚¦‚ç‚ê‚éî•ñ
-//	–Ú“I’n‚ª¼ˆÈŠO‚È‚çtrueA¼‚È‚çfalse
-//	–k‹É“_‚©‚çŒ»Ý’n‚Ü‚Å‚ÌŠp“x‚ÌƒTƒCƒ“AƒRƒTƒCƒ“(splt,cplt)
-//	ˆÚ“®‚·‚é•ûŠp‚ÌƒRƒTƒCƒ“(cth)AˆÚ“®Šp‚ÌƒTƒCƒ“AƒRƒTƒCƒ“(srad,crad)
-//“¾‚ç‚ê‚éî•ñ
-//	–k‹É“_‚©‚ç–Ú“I’n‚Ü‚Å‚ÌˆÜ“x·(dlt)AŒ»Ý’n‚©‚ç–Ú“I’n‚Ü‚Å‚ÌŒo“x·(dlg)
-//                        ~~~~~~~~~~~                        ~~~~~~~~~~~
+//ä¸Žãˆã‚‰ã‚Œã‚‹æƒ…å ±
+//	ç›®çš„åœ°ãŒè¥¿ä»¥å¤–ãªã‚‰trueã€è¥¿ãªã‚‰false
+//	åŒ—æ¥µç‚¹ã‹ã‚‰ç¾åœ¨åœ°ã¾ã§ã®è§’åº¦ã®ã‚µã‚¤ãƒ³ã€ã‚³ã‚µã‚¤ãƒ³(splt,cplt)
+//	ç§»å‹•ã™ã‚‹æ–¹è§’ã®ã‚³ã‚µã‚¤ãƒ³(cth)ã€ç§»å‹•è§’ã®ã‚µã‚¤ãƒ³ã€ã‚³ã‚µã‚¤ãƒ³(srad,crad)
+//å¾—ã‚‰ã‚Œã‚‹æƒ…å ±
+//	åŒ—æ¥µç‚¹ã‹ã‚‰ç›®çš„åœ°ã¾ã§ã®ç·¯åº¦å·®(dlt)ã€ç¾åœ¨åœ°ã‹ã‚‰ç›®çš„åœ°ã¾ã§ã®çµŒåº¦å·®(dlg)
+//                        â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾                        â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾â€¾
 
 #define PI 3.14159265358979323846
 
 #define azi_calc(dirEW,splt,cplt,cth,srad,crad,dlt,dlg) \
 	do {\
-		/*dlt‚ÌŽZo*/\
+		/*dltã®ç®—å‡º*/\
 		double cdlt = splt*srad*cth+cplt*crad;\
 		if(cdlt > 1)\
 			cdlt = 1;\
 		else if(cdlt < -1)\
 			cdlt = -1;\
 		dlt = acos(cdlt);\
-		/*dlg‚ÌŽZo*/\
-		if(cplt == 1){/*Œ»Ý’n‚ª–k‹É“_*/\
+		/*dlgã®ç®—å‡º*/\
+		if(cplt == 1){/*ç¾åœ¨åœ°ãŒåŒ—æ¥µç‚¹*/\
 			if(dirEW)\
 				dlg = PI - acos(cth);\
 			else\
 				dlg = acos(cth) - PI;\
-		}else if(cplt == -1){/*Œ»Ý’n‚ª“ì‹É“_*/\
+		}else if(cplt == -1){/*ç¾åœ¨åœ°ãŒå—æ¥µç‚¹*/\
 			if(dirEW)\
 				dlg = acos(cth);\
 			else\
 				dlg = -1*acos(cth);\
-		}else if(cth == 1){ /*–Ú“I’n‚ª^–k*/\
+		}else if(cth == 1){ /*ç›®çš„åœ°ãŒçœŸåŒ—*/\
 			if(splt*crad-cplt*srad >= 0)\
 				dlg = 0;\
 			else\
 				dlg = PI;\
-		}else if(cth == -1){ /*–Ú“I’n‚ª^“ì*/\
+		}else if(cth == -1){ /*ç›®çš„åœ°ãŒçœŸå—*/\
 			if(splt*crad+cplt*srad >= 0)\
 				dlg = 0;\
 			else\
 				dlg = PI;\
-		}else{ /*‚»‚Ì‘¼*/\
+		}else{ /*ãã®ä»–*/\
 			double sdlt = sqrt(1-cdlt*cdlt);\
 			double buf = (crad-cplt*cdlt)/(splt*sdlt);\
 			if(buf > 1)\

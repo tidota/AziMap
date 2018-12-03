@@ -17,13 +17,13 @@ namespace AziMap {
 	using namespace System::Threading;
 
 	/// <summary>
-	/// Form1 �̊T�v
+	/// Form1 の概要
 	///
-	/// �x��: ���̃N���X�̖��O��ύX����ꍇ�A���̃N���X���ˑ����邷�ׂĂ� .resx �t�@�C���Ɋ֘A�t����ꂽ
-	///          �}�l�[�W ���\�[�X �R���p�C�� �c�[���ɑ΂��� 'Resource File Name' �v���p�e�B��
-	///          �ύX����K�v������܂��B���̕ύX���s��Ȃ��ƁA
-	///          �f�U�C�i�ƁA���̃t�H�[���Ɋ֘A�t����ꂽ���[�J���C�Y�ς݃��\�[�X�Ƃ��A
-	///          ���������݂ɗ��p�ł��Ȃ��Ȃ�܂��B
+	/// 警告: このクラスの名前を変更する場合、このクラスが依存するすべての .resx ファイルに関連付けられた
+	///          マネージ リソース コンパイラ ツールに対して 'Resource File Name' プロパティを
+	///          変更する必要があります。この変更を行わないと、
+	///          デザイナと、このフォームに関連付けられたローカライズ済みリソースとが、
+	///          正しく相互に利用できなくなります。
 	/// </summary>
 	public ref class Form1 : public System::Windows::Forms::Form
 	{
@@ -32,15 +32,15 @@ namespace AziMap {
 		{
 			InitializeComponent();
 			//
-			//TODO: �����ɃR���X�g���N�^ �R�[�h��ǉ����܂�
+			//TODO: ここにコンストラクタ コードを追加します
 			//
 
-			//�\�[�X�摜�̃��[�h
+			//ソース画像のロード
 			srcimg = "";
 			Assembly^ asmbly = Assembly::GetExecutingAssembly();
 			updtsrcimg(gcnew Bitmap(asmbly->GetManifestResourceStream("source.jpg")));
 
-			//�\���p�摜�̗p��
+			//表示用画像の用意
 			dbmp = nullptr;
 			ddt = nullptr;
 			lscth = nullptr;
@@ -54,7 +54,7 @@ namespace AziMap {
 			updtls();
 			this->lsavlbl = true;
 
-			//���C���̏���
+			//メインの処理
 			plt = (90.0 - FST_N)/180*PI;
 			plg = FST_E/180*PI;
 
@@ -70,9 +70,9 @@ namespace AziMap {
 
 	protected:
 		/// <summary>
-		/// �g�p���̃��\�[�X�����ׂăN���[���A�b�v���܂��B
+		/// 使用中のリソースをすべてクリーンアップします。
 		/// </summary>
-		~Form1()
+		‾Form1()
 		{
 			this->enthd = false;
 			this->thd->Join();
@@ -375,14 +375,14 @@ private: System::ComponentModel::IContainer^  components;
 
 	private:
 		/// <summary>
-		/// �K�v�ȃf�U�C�i�ϐ��ł��B
+		/// 必要なデザイナ変数です。
 		/// </summary>
 
 
 #pragma region Windows Form Designer generated code
 		/// <summary>
-		/// �f�U�C�i �T�|�[�g�ɕK�v�ȃ��\�b�h�ł��B���̃��\�b�h�̓��e��
-		/// �R�[�h �G�f�B�^�ŕύX���Ȃ��ł��������B
+		/// デザイナ サポートに必要なメソッドです。このメソッドの内容を
+		/// コード エディタで変更しないでください。
 		/// </summary>
 		void InitializeComponent(void)
 		{
@@ -548,8 +548,8 @@ private: System::ComponentModel::IContainer^  components;
 private: System::Void pictureBox1_MouseMove(System::Object^  sender, System::Windows::Forms::MouseEventArgs^  e) {
 			 if((e->Button & System::Windows::Forms::MouseButtons::Left) == System::Windows::Forms::MouseButtons::Left){
 				if(this->bsythd == false){
-					dmspt.X = (mspt.X - e->X);//�������̈ړ���
-					dmspt.Y = (mspt.Y - e->Y);//������̈ړ���
+					dmspt.X = (mspt.X - e->X);//東方向の移動量
+					dmspt.Y = (mspt.Y - e->Y);//南方向の移動量
 					mspt.X = e->X;
 					mspt.Y = e->Y;
 					
