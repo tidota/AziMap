@@ -7,6 +7,6 @@ The code is written in C++/CLI (for some reason).
 
 # TODO
 
-- [ ] Test run
+- [x] Test run
 - [ ] Re-encode from Shift-JIS to UTF-8
 
